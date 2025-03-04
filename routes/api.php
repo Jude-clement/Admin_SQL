@@ -5,21 +5,18 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\UserController;
 
 // Public routes
-Route::post('/register', [AuthController::class, 'register']);
+// Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/refresh', [AuthController::class, 'refresh']); // Add this new route
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/profile', [AuthController::class, 'profile']);
+    Route::get('/profile', [AuthController::class, 'profile']); //shows current logged in user's profile
     
     // User management routes
-    Route::apiResource('users', UserController::class);
+    Route::apiResource('users', UserController::class); //for CRUD operations on users
 });
-
-
-
-
 
 
 

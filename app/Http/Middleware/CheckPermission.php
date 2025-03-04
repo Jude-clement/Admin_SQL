@@ -11,7 +11,7 @@ class CheckPermission
     {
         if (!$request->user()->tokenCan($permission)) {
             return response()->json([
-                'success' => false,
+                'result' => false,
                 'message' => 'You do not have permission to perform this action',
             ], 403);
         }

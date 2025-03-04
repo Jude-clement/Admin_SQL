@@ -24,7 +24,7 @@ class UserController extends Controller
         $users = User::with('roles')->get();
         
         return response()->json([
-            'success' => true,
+            'result' => true,
             'message' => 'Users retrieved successfully',
             'data' => $users
         ]);
@@ -41,7 +41,7 @@ class UserController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'success' => false,
+                'result' => false,
                 'message' => 'Validation errors',
                 'errors' => $validator->errors()
             ], 422);
@@ -57,7 +57,7 @@ class UserController extends Controller
         $user->assignRole($request->role);
 
         return response()->json([
-            'success' => true,
+            'result' => true,
             'message' => 'User created successfully',
             'data' => $user->load('roles')
         ], 201);
@@ -69,13 +69,13 @@ class UserController extends Controller
         
         if (!$user) {
             return response()->json([
-                'success' => false,
+                'result' => false,
                 'message' => 'User not found',
             ], 404);
         }
 
         return response()->json([
-            'success' => true,
+            'result' => true,
             'message' => 'User retrieved successfully',
             'data' => $user
         ]);
@@ -87,7 +87,7 @@ class UserController extends Controller
         
         if (!$user) {
             return response()->json([
-                'success' => false,
+                'result' => false,
                 'message' => 'User not found',
             ], 404);
         }
@@ -101,7 +101,7 @@ class UserController extends Controller
 
         if ($validator->fails()) {
             return response()->json([
-                'success' => false,
+                'result' => false,
                 'message' => 'Validation errors',
                 'errors' => $validator->errors()
             ], 422);
@@ -130,9 +130,10 @@ class UserController extends Controller
         }
 
         return response()->json([
-            'success' => true,
+            'result' => true,
             'message' => 'User updated successfully',
-            'data' => $user->load('roles')
+            'user' => $user,
+            // 'data' => $user->load('roles')
         ]);
     }
 
@@ -142,7 +143,7 @@ class UserController extends Controller
         
         if (!$user) {
             return response()->json([
-                'success' => false,
+                'result' => false,
                 'message' => 'User not found',
             ], 404);
         }
@@ -150,7 +151,7 @@ class UserController extends Controller
         // Prevent self-deletion
         if (auth()->id() == $id) {
             return response()->json([
-                'success' => false,
+                'result' => false,
                 'message' => 'You cannot delete yourself',
             ], 403);
         }
@@ -158,7 +159,7 @@ class UserController extends Controller
         $user->delete();
 
         return response()->json([
-            'success' => true,
+            'result' => true,
             'message' => 'User deleted successfully',
         ]);
     }

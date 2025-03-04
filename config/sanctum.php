@@ -46,7 +46,8 @@ return [
     |
     */
 
-    'expiration' => null,
+    // 'expiration' => null,
+'expiration' => 1,    
 // 'expiration' => 60 * 24, // 24 hours
     /*
     |--------------------------------------------------------------------------

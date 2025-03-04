@@ -78,3 +78,6 @@ class ResourceController extends Controller
         ]);
     }
 }
+
+
+//this page is not needed
