@@ -15,9 +15,9 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'username' => 'required|string|max:255',
+            'username' => 'required|string|max:255|regex:/^[A-Za-z0-9_]+$/',
             'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
+            'password' => 'required|string|min:8|regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/',
             'role' => 'required|string|in:superadmin,admin,frontoffice',
         ]);
 
@@ -86,6 +86,7 @@ class AuthController extends Controller
             'message' => 'Login successful',
             'user' => $user,
             'roles' => $roles,
+            'role' => $roles->first(), // Include the user's primary role in the response
             'permissions' => $permissions,
             'access_token' => $token,
             'refresh_token' => $refreshToken->token,
@@ -114,7 +115,7 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'refresh_token' => 'required|string',
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
@@ -122,33 +123,38 @@ class AuthController extends Controller
                 'errors' => $validator->errors()
             ], 422);
         }
-
+    
         // Find the refresh token
-        $refreshToken = RefreshToken::where('token', $request->refresh_token)->first();
-
+        $refreshToken = RefreshToken::where('token', $request->refresh_token)
+            ->where('revoked', false)
+            ->where('expires_at', '>', now())
+            ->first();
+    
         // Check if token exists and is valid
-        if (!$refreshToken || !$refreshToken->isValid()) {
+        if (!$refreshToken) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid refresh token',
+                'message' => 'Invalid or expired refresh token',
             ], 401);
         }
-
+    
         $user = $refreshToken->user;
-
+    
+        // Revoke the used refresh token
+        $refreshToken->update(['revoked' => true]);
+    
         // Revoke all of the user's tokens
         $user->tokens()->delete();
-
+    
         // Get user's permissions
         $permissions = $user->getAllPermissions()->pluck('name');
-
+    
         // Generate a new access token
         $token = $user->createToken('auth_token', $permissions->toArray())->plainTextToken;
-
+    
         // Generate a new refresh token
-        $this->revokeRefreshToken($request->refresh_token);
         $newRefreshToken = $this->createRefreshToken($user);
-
+    
         return response()->json([
             'success' => true,
             'message' => 'Token refreshed successfully',
@@ -183,7 +189,7 @@ class AuthController extends Controller
         return RefreshToken::create([
             'user_id' => $user->id,
             'token' => Str::random(64),
-            'expires_at' => now()->addDays(1), // 30 days expiration
+            'expires_at' => now()->addDays(30), // 1 day expiration
         ]);
     }
 
